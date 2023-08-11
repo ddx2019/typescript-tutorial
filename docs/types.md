@@ -66,6 +66,11 @@ const z:number = 0xffff;
 ### bigint 类型
 
 bigint 类型包含所有的大整数。
+<!-- start: dx -->
+`123n` 表示一个 BigInt 类型的整数，它的值为 123。BigInt 类型是 ES2020 中新增的一种数据类型，用于表示任意精度的整数。与普通的 Number 类型不同，BigInt 类型可以表示比 Number 类型更大的整数，例如超过 `Number.MAX_SAFE_INTEGER`（即 2^53 - 1）的整数。
+
+需要注意的是，BigInt 类型的整数需要在数字后面添加 `n` 后缀，以表示这是一个 BigInt 类型的整数。如果没有添加 `n` 后缀，则会被解释为普通的 Number 类型的整数。
+<!-- end：dx -->
 
 ```typescript
 const x:bigint = 123n;
@@ -171,6 +176,17 @@ JavaScript 的8种类型之中，`undefined`和`null`其实是两个特殊值，
 ```
 
 上面示例中，字符串`hello`执行了`charAt()`方法。但是，在 JavaScript 语言中，只有对象才有方法，原始类型的值本身没有方法。这行代码之所以可以运行，就是因为在调用方法时，字符串会自动转为包装对象，`charAt()`方法其实是定义在包装对象上。
+<!-- start: dx -->
+在 JavaScript 中，当你在一个字符串上调用方法时，JavaScript 引擎会自动将该字符串转换为一个 String 对象，以便在调用方法时能够正常工作。这种自动转换的过程称为“装箱（boxing）”。装箱过程的具体步骤如下：
+
+1. 创建一个 String 对象。
+2. 将原始字符串的值复制到 String 对象中。
+3. 在 String 对象上调用方法。
+4. 返回方法的结果。
+5. 将 String 对象转换回原始字符串的值。
+
+在调用完方法后，JavaScript 引擎会将 String 对象转换回原始的字符串值。这种自动转换的过程是 JavaScript 引擎内部自动完成的，你不需要手动进行转换。
+<!-- end: dx -->
 
 这样的设计大大方便了字符串处理，省去了将原始类型的值手动转成对象实例的麻烦。
 
@@ -254,6 +270,10 @@ obj = 1;
 obj = { foo: 123 };
 obj = [1, 2];
 obj = (a:number) => a + 1;
+// start: dx
+obj= Symbol('foo');
+obj = 123n;
+//start: dx
 ```
 
 上面示例中，原始类型值、对象、数组、函数都是合法的`Object`类型。
@@ -280,6 +300,10 @@ obj = 1;
 obj = { foo: 123 };
 obj = [1, 2];
 obj = (a:number) => a + 1;
+//start: dx
+obj= Symbol('foo');
+obj = 123n;
+//end: dx
 ```
 
 上面示例中，变量`obj`的类型是空对象`{}`，就代表`Object`类型。
@@ -299,6 +323,10 @@ obj = (a:number) => a + 1;
 obj = true; // 报错
 obj = 'hi'; // 报错
 obj = 1; // 报错
+//statr:dx
+obj= Symbol('foo');// 报错
+obj = 123n;// 报错
+//end:dx
 ```
 
 上面示例中，`object`类型不包含原始类型值，只包含对象、数组和函数。
@@ -413,6 +441,10 @@ const x = 'https';
 
 // y 的类型是 string
 const y:string = 'https';
+//start:dx
+// z 的类型是 string
+let z ='https'
+//end:dx
 ```
 
 上面示例中，变量`x`是`const`命令声明的，TypeScript 就会推断它的类型是值`https`，而不是`string`类型。
@@ -442,7 +474,7 @@ const x:5 = 4 + 1; // 报错
 let x:5 = 5;
 let y:number = 4 + 1;
 
-x = y; // 报错
+x = y; // 报错,不能将类型“number”分配给类型“5”(dx)
 y = x; // 正确
 ```
 
@@ -618,11 +650,19 @@ type Color = 'blue'; // 报错
 别名的作用域是块级作用域。这意味着，代码块内部定义的别名，影响不到外部。
 
 ```typescript
-type Color = 'red';
-
+type Color = 'red'
+//start:dx
+const color: Color = 'red' //red
+const bgcolor: Color = 'yellow' //报错，不能将类型“"yellow"”分配给类型“"red"”
+//end:dx
 if (Math.random() < 0.5) {
-  type Color = 'blue';
+  type Color = 'blue'
+  //start:dx
+  const color: Color = 'blue' //blue
+  const bgcolor: Color = 'yellow' //报错，不能将类型“"yellow"”分配给类型“"blue"”
+  //end:dx
 }
+
 ```
 
 上面示例中，`if`代码块内部的类型别名`Color`，跟外部的`Color`是不一样的。
@@ -632,11 +672,22 @@ if (Math.random() < 0.5) {
 ```typescript
 type World = "world";
 type Greeting = `hello ${World}`;
+//start:dx
+const world: World = "world"; // OK
+const badWorld: World = "hi"; // Error 不能将类型“"hi"”分配给类型“"world"”。
+
+const greeting: Greeting = "hello world"; // OK
+const badGreeting: Greeting = "hi"; // Error 不能将类型“"hi"”分配给类型“"hello world"”
+//end:dx
 ```
 
 上面示例中，别名`Greeting`使用了模板字符串，读取另一个别名`World`。
 
 `type`命令属于类型相关的代码，编译成 JavaScript 的时候，会被全部删除。
+
+<!-- start: dx -->
+` `type` 命令是 TypeScript 中的类型声明语法，用于定义类型别名、联合类型、交叉类型等。在编译 TypeScript 代码时，`type` 命令会被编译器解析并生成对应的 JavaScript 代码，但是在生成的 JavaScript 代码中，`type` 命令会被完全删除，因为它只是 TypeScript 的类型系统的一部分，而不是 JavaScript 的语法。因此，`type` 命令只在 TypeScript 编译期间起作用，不会影响 JavaScript 运行时的行为。`
+<!-- end: dx -->
 
 ## typeof 运算符
 
@@ -668,10 +719,13 @@ typeof 127n // "bigint"
 TypeScript 将`typeof`运算符移植到了类型运算，它的操作数依然是一个值，但是返回的不是字符串，而是该值的 TypeScript 类型。
 
 ```typescript
-const a = { x: 0 };
+const a = { x: 0 }
 
-type T0 = typeof a;   // { x: number }
-type T1 = typeof a.x; // number
+type T0 = typeof a // { x: number }
+type T1 = typeof a.x // number
+//start:dx
+console.log(typeof a, typeof a.x) // object number
+//end:dx
 ```
 
 上面示例中，`typeof a`表示返回变量`a`的 TypeScript 类型（`{ x: number }`）。同理，`typeof a.x`返回的是属性`x`的类型（`number`）。
@@ -690,8 +744,9 @@ if (typeof a === 'number') {
 ```
 
 上面示例中，用到了两个`typeof`，第一个是类型运算，第二个是值运算。它们是不一样的，不要混淆。
-
-JavaScript 的 typeof 遵守 JavaScript 规则，TypeScript 的 typeof 遵守 TypeScript 规则。它们的一个重要区别在于，编译后，前者会保留，后者会被全部删除。
+<!-- start:dx -->
+JavaScript 的 typeof 遵守 JavaScript 规则，TypeScript 的 typeof 遵守 TypeScript 规则。它们的一个重要区别在于，编译后，前者（JavaScript 代码部分，即值运算）会保留，后者（TypeScript 代码部分，即类型运算）会被全部删除。
+<!-- end:dx -->
 
 上例的代码编译结果如下。
 
@@ -704,9 +759,9 @@ if (typeof a === 'number') {
 ```
 
 上面示例中，只保留了原始代码的第二个 typeof，删除了第一个 typeof。
-
-由于编译时不会进行 JavaScript 的值运算，所以TypeScript 规定，typeof 的参数只能是标识符，不能是需要运算的表达式。
-
+<!-- start:dx -->
+由于编译时不会进行 JavaScript 的值运算，所以TypeScript 规定，typeof 的参数只能是标识符，即typeof的参数只能是一个值，不能是需要运算的表达式。
+<!-- end:dx -->
 ```typescript
 type T = typeof Date(); // 报错
 ```
@@ -769,3 +824,4 @@ a = b; // 报错
 
 之所以有这样的规则，是因为子类型继承了父类型的所有特征，所以可以用在父类型的场合。但是，子类型还可能有一些父类型没有的特征，所以父类型不能用在子类型的场合。
 
+<!-- dxing -->
