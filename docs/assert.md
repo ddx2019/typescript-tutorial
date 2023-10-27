@@ -190,7 +190,9 @@ function setLang(language:Lang) {
   /* ... */
 }
 
-setLang(s); // 报错
+setLang(s); // 报错,类型“string”的参数不能赋给类型“Lang”的参数
+// 子类型是父类型中一种可能的取值，注：子类型可以赋值给父类型，但是父类型不能赋值给子类型。
+setLang(s as Lang); //不报错
 ```
 
 上面示例中，最后一行报错，原因是函数`setLang()`的参数`language`类型是`Lang`，这是一个联合类型。但是，传入的字符串`s`的类型被推断为`string`，属于`Lang`的父类型。父类型不能替代子类型，导致报错。
@@ -200,8 +202,9 @@ setLang(s); // 报错
 ```typescript
 const s = 'JavaScript';
 ```
-
 这样的话，变量`s`的类型就是值类型`JavaScript`，它是联合类型`Lang`的子类型，传入函数`setLang()`就不会报错。
+
+<!-- dx ：Lang 是一个联合类型，它的值只能是 'JavaScript'、'TypeScript' 或 'Python' 中的一个。变量`s`的类型 为'JavaScript'， 是 Lang 类型的一种可能的取值，变量`s`的类型即值类型`JavaScript` 是 联合类型`Lang`的子类型 -->
 
 另一种解决方法是使用类型断言。TypeScript 提供了一种特殊的类型断言`as const`，用于告诉编译器，推断类型时，可以将这个值推断为常量，即把 let 变量断言为 const 变量，从而把内置的基本类型变更为值类型。
 
@@ -363,6 +366,15 @@ const root = document.getElementById('root')!;
 
 上面示例中，`getElementById()`方法加上后缀`!`，表示这个方法肯定返回非空结果。
 
+如在赋值前使用了变量会报错，但是若在声明变量的时候，使用了非空断言，此时typescript不会报错：
+（只是记录）
+```typescript
+let x: string
+console.log(x)//报错，在赋值前使用了变量“x”
+let y!: string//使用了非空断言(类型断言的一种)，告诉 TypeScript 变量y是非空的，后面会赋值，后面给变量y赋值时候注意不能让其为 `undefined`或`null` 
+console.log(y)//不报错
+```
+
 不过，非空断言会造成安全隐患，只有在确定一个表达式的值不为空时才能使用。比较保险的做法还是手动检查一下是否为空。
 
 ```typescript
@@ -380,6 +392,8 @@ root.addEventListener('click', e => {
 上面示例中，如果`root`为空会抛错，比非空断言更保险一点。
 
 非空断言还可以用于赋值断言。TypeScript 有一个编译设置，要求类的属性必须初始化（即有初始值），如果不对属性赋值就会报错。
+
+
 
 ```typescript
 class Point {
@@ -594,3 +608,4 @@ console.log(person.name);
 - [Assertion Functions in TypeScript](https://mariusschulz.com/blog/assertion-functions-in-typescript), Marius Schulz
 - [Assertion functions in TypeScript](https://blog.logrocket.com/assertion-functions-typescript/), Matteo Di Pirro
 
+<!-- dxing -->

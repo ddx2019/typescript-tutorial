@@ -6,6 +6,12 @@
 
 TypeScript 代码最明显的特征，就是为 JavaScript 变量加上了类型声明。
 
+TypeScript报错情形：
+
+1. 变量值与声明的类型不一致时
+2. 变量只做了声明，并未对其赋值就使用它
+
+
 ```typescript
 let foo:string;
 ```
@@ -35,7 +41,7 @@ let foo:string = 123;
 
 ```typescript
 let x:number;
-console.log(x) // 报错
+console.log(x) // 报错,在赋值前使用了变量“x”。
 ```
 
 上面示例中，变量`x`没有赋值就被读取，导致报错。而 JavaScript 允许这种行为，不会报错，没有赋值的变量会返回`undefined`。
@@ -92,7 +98,6 @@ TypeScript 代码只涉及类型，不涉及值。所有跟“值”相关的处
 这一点务必牢记。TypeScript 项目里面，其实存在两种代码，一种是底层的“值代码”，另一种是上层的“类型代码”。前者使用 JavaScript 语法，后者使用 TypeScript 的类型语法。
 
 它们是可以分离的，TypeScript 的编译过程，实际上就是把“类型代码”全部拿掉，只保留“值代码”。
-
 编写 TypeScript 项目时，不要混淆哪些是值代码，哪些是类型代码。
 
 ## TypeScript Playground
@@ -259,7 +264,6 @@ tsc 命令的更多参数，详见《tsc 编译器》一章。
 ### tsconfig.json
 
 TypeScript 允许将`tsc`的编译参数，写在配置文件`tsconfig.json`。只要当前目录有这个文件，`tsc`就会自动读取，所以运行时可以不写参数。
-
 ```bash
 $ tsc file1.js file2.js --outFile dist/app.js
 ```
@@ -332,3 +336,4 @@ $ ts-node
 
 如果只是想简单运行 TypeScript 代码看看结果，ts-node 不失为一个便捷的方法。
 
+<!-- dxing -->

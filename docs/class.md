@@ -95,6 +95,53 @@ class A {
 
 上面示例中，构造方法修改只读属性的值也是可以的。或者说，如果两个地方都设置了只读属性的值，以构造方法为准。在其他方法修改只读属性都会报错。
 
+```typescript
+class Person {
+    readonly name: string
+    constructor(name: string) {
+        this.name = name
+    }
+}
+const p = new Person('张三')
+console.log(p.name, 'p.name') //编译不报错，正常输出 ‘张三 p.name’
+// p.name = '李四' // 报错，因为实例对象p不能修改只读属性name,但若未曾对typescript做报错就停止编译等设置(https://www.typescriptlang.org/tsconfig#noEmitOnError)，则会正常编译出JavaScript代码，即p.name='李四'会正常执行，且 实例对象，p的name属性也会相应的被更改为‘李四’
+```
+
+（只读属性可以先声明，再在构造方法赋值，或者可以先声明，并赋上初始值，再通过构造方法修改只读属性的值；赋初始值的方法：可以在声明的时候赋值，也可以在构造函数中，通过给构造函数的参数赋默认值的方式进行赋值）
+
+```typescript
+
+
+class Person1 {
+    readonly name: string
+    constructor(name: string) {
+        this.name = name
+    }
+}
+
+const p1 = new Person1('张三') //必须传值，否则报错，因为name参数必选
+
+class Person2 {
+    readonly name: string = ''
+    constructor(name: string) {
+        this.name = name
+    }
+}
+
+const p2 = new Person2('张三') //必须传值，否则报错，因为name参数必选
+
+class Person3 {
+    readonly name: string
+    //构造函数的参数被设置了默认值，TypeScript会自动推断出name的类型为string，且是可选的,所以在构造函数中不传参也不会报错
+    constructor(name: string = '') {
+        this.name = name
+    }
+}
+
+const p3 = new Person3() // 不报错，因为name是可选的，p3.name的值是''
+
+```
+
 ### 方法的类型
 
 类的方法就是普通函数，类型声明方式与函数一致。
@@ -151,6 +198,43 @@ class Point {
 ```
 
 上面示例中，构造方法可以接受一个参数，也可以接受两个参数，采用函数重载进行类型声明。
+
+（补充：这个实现需要能够处理所有可能的重载情况，在给出的 `Point` 类中，构造函数使用了函数重载，可以接受一个参数或两个参数。
+
+具体来说，`Point` 类有两个构造函数重载：
+
+1. 第一个构造函数重载接受两个参数：一个 `number` 类型的 `x` 和一个 `string` 类型的 `y`。
+2. 第二个构造函数重载接受一个 `string` 类型的参数 `s`。
+
+最后，实际的构造函数实现接受一个 `number | string` 类型的参数 `xs` 和一个可选的 `string` 类型的参数 `y`。
+
+我们可以在构造函数的实现中处理所有可能的重载情况,并通过创建 Point 类的实例来验证我们的构造函数是否正确：
+
+```typescript
+// 以下示例中，分别使用不同类型和数量的参数创建 Point 类的实例，并打印了它们的 x 和 y 属性。这证明了我们的构造函数重载是正确的。
+class Point {
+    x: number | string;
+    y?: string;
+    constructor(x: number, y: string);
+    constructor(s: string);
+    // constructor(xs: number | string, y?: string)
+    constructor(xs: number | string, y?: string) {
+        this.x = xs;
+        if (typeof y !== 'undefined') {
+            this.y = y;
+        }
+    }
+}
+
+const point1 = new Point(1, 'a'); 
+console.log(point1); //{x: 1, y: "a"}
+
+const point2 = new Point('b'); 
+console.log(point2);// {x: "b", y: undefined}
+
+```
+
+（构造函数重载的主要优点是提供更明确的类型安全和更好的自动完成支持。当你在使用某个类时，如果这个类的构造函数有多个重载，那么你的 IDE 或编辑器（如 Visual Studio Code）可以根据你提供的参数类型和数量，给出正确的参数提示和类型检查。）
 
 另外，构造方法不能声明返回值类型，否则报错，因为它总是返回实例对象。
 
@@ -409,6 +493,80 @@ interface Foo {
 
 上面示例中，接口`Foo`有一个私有属性，结果就报错了。
 
+#### `implements` 和 `extends` 与类
+
+ 在 TypeScript 中，`implements` 和 `extends` 是两个用于建立类之间关系的关键字。
+
+`implements` 用于实现接口。当一个类实现一个接口时，它需要定义接口中声明的所有属性和方法。
+
+优点：
+
+1. 提供了一种强制类遵守特定契约的方式，增加了代码的可读性和可维护性。
+2. 提供了一种模拟多重继承的方式，因为一个类可以实现多个接口。
+
+缺点：
+
+1. 如果类没有正确实现接口，或者接口发生了变化，那么类需要进行相应的修改，这可能会增加维护成本。
+
+例如：`Dog` 类实现了 `Animal` 接口，所以它必须有一个 `name` 属性和一个 `makeSound` 方法
+
+```typescript
+interface Animal {
+  name: string;
+  makeSound(): void;
+}
+
+class Dog implements Animal {
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  makeSound() {
+    console.log('Woof!');
+  }
+}
+```
+
+`extends` 用于继承类。当一个类继承另一个类时，它会继承父类的所有属性和方法，并可以添加新的属性和方法，或者覆盖父类的方法。
+
+优点：
+
+1. 提供了一种代码复用的方式，可以减少代码的冗余。
+2. 提供了一种建立类之间层次关系的方式，增加了代码的可读性。
+
+缺点：
+
+1. 如果父类的内部实现发生了变化，可能会影响到子类的行为，这可能会增加维护成本。
+2. TypeScript 不支持多重继承，即一个类只能继承一个父类。
+
+例如：`Dog` 类继承了 `Animal` 类，所以它有一个 `name` 属性和一个 `makeSound` 方法。`Dog` 类覆盖了 `Animal` 类的 `makeSound` 方法，所以当调用 `Dog` 类的 `makeSound` 方法时，会打印出 'Woof!'。
+
+```typescript
+class Animal {
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  makeSound() {
+    console.log('Animal sound!');
+  }
+}
+
+class Dog extends Animal {
+  constructor(name: string) {
+    super(name);
+  }
+
+  makeSound() {
+    console.log('Woof!');
+  }
+}
+```
+
 ### 实现多个接口
 
 类可以实现多个接口（其实是接受多重限制），每个接口之间使用逗号分隔。
@@ -486,6 +644,101 @@ interface Swimmable {
 ```
 
 上面示例中，属性`foo`在两个接口里面的类型不同，如果同时实现这两个接口，就会报错。
+
+#### tips
+
+总结&示例：
+
+ 在 TypeScript 中，类实现多个接口主要有两种方式：
+ 一种是直接在类后面使用 `implements` 关键字并用逗号分隔接口，另一种是通过接口继承（使用 `extends` 关键字）来实现多个接口。
+
+1. 方式一：`implements`关键字后，直接写接口名，接口之间用逗号隔开。例如：
+
+```typescript
+interface Interface1 {
+    method1(): void;
+}
+
+interface Interface2 {
+    method2(): void;
+}
+
+class MyClass implements Interface1, Interface2 {
+    method1(): void {
+        console.log('method1 from Interface1');
+    }
+
+    method2(): void {
+        console.log('method2 from Interface2');
+    }
+}
+
+let myClass = new MyClass();
+myClass.method1(); // 输出：method1 from Interface1
+myClass.method2(); // 输出：method2 from Interface2
+```
+
+2. 方式二：接口之间用`extends`关键字隔开，`implements`关键字后，直接写最终的接口名
+
+```typescript
+interface Interface1 {
+    method1(): void;
+}
+
+interface Interface2 {
+    method2(): void;
+}
+
+interface CombinedInterface extends Interface1, Interface2 {}
+
+class MyClass implements CombinedInterface {
+    method1(): void {
+        console.log('method1 from Interface1');
+    }
+
+    method2(): void {
+        console.log('method2 from Interface2');
+    }
+}
+
+let myClass = new MyClass();
+myClass.method1(); // 输出：method1 from Interface1
+myClass.method2(); // 输出：method2 from Interface2
+```
+
+在这两个例子中，`MyClass` 类都实现了 `Interface1` 和 `Interface2` 两个接口。
+
+如果你想要实现的接口有相同的方法或属性，你还可以使用交叉类型（使用 `&` 符号）。例如：
+
+```typescript
+interface Interface1 {
+    method1(): void;
+}
+
+interface Interface2 {
+    method1(): void;
+    method2(): void;
+}
+
+type CombinedType = Interface1 & Interface2;
+
+class MyClass implements CombinedType {
+    method1(): void {
+        console.log('method1 from Interface1 and Interface2');
+    }
+
+    method2(): void {
+        console.log('method2 from Interface2');
+    }
+}
+
+let myClass = new MyClass();
+myClass.method1(); // 输出：method1 from Interface1 and Interface2
+myClass.method2(); // 输出：method2 from Interface2
+```
+
+在这个例子中，`CombinedType` 是 `Interface1` 和 `Interface2` 的交叉类型，然后 `MyClass` 类实现了 `CombinedType`。
+
 
 ### 类与接口的合并
 
